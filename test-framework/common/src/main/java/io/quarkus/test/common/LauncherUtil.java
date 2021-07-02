@@ -64,7 +64,7 @@ final class LauncherUtil {
                 Duration.ofSeconds(waitTimeSeconds), signal, resultReference);
         new Thread(captureListeningDataReader, "capture-listening-data").start();
         try {
-            signal.await(10, TimeUnit.SECONDS);
+            signal.await(getSignalTimeout(), TimeUnit.SECONDS);
             ListeningAddress result = resultReference.get();
             if (result != null) {
                 return result;
@@ -75,6 +75,18 @@ final class LauncherUtil {
         } catch (InterruptedException e) {
             throw new RuntimeException("Interrupted while waiting to capture listening process port and protocol");
         }
+    }
+
+    private static int getSignalTimeout() {
+
+        Integer overrideTimeout = Integer.getInteger("quarkus.signal.timeout");
+
+        if (overrideTimeout != null) {
+            System.out.print("Overriding quarkus signal timeout: ");
+            System.out.println(overrideTimeout);
+            return overrideTimeout;
+        }
+        return 10;
     }
 
     /**
